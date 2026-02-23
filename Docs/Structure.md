@@ -1,0 +1,100 @@
+
+hosp/
+  apps/
+    land/
+      src/
+        app/
+        components/
+        lib/
+        styles/
+      public/
+      next.config.js
+      package.json
+
+    frontend-app/
+      src/
+        app/
+          (public)/
+          reservas/
+          quartos/
+          layout.tsx
+        components/
+        lib/
+        styles/
+      public/
+      next.config.js
+      package.json
+
+    frontend-admin/
+      src/
+        app/
+          admin/
+            dashboard/
+            quartos/
+            reservas/
+            caixa/
+          layout.tsx
+        components/
+        lib/
+        styles/
+      public/
+      next.config.js
+      package.json
+
+    backend/
+      src/
+        server.ts
+        env.ts
+        plugins/
+          cors.ts
+          swagger.ts
+          rateLimit.ts
+          authBasic.ts   // PIN ou Basic
+        routes/
+          health.routes.ts
+          rooms.routes.ts
+          bookings.routes.ts
+          guests.routes.ts
+          cash.routes.ts
+        controllers/
+          rooms.controller.ts
+          bookings.controller.ts
+          guests.controller.ts
+          cash.controller.ts
+        services/
+          rooms.service.ts
+          bookings.service.ts
+          guests.service.ts
+          cash.service.ts
+        repositories/
+          rooms.repo.ts
+          bookings.repo.ts
+          guests.repo.ts
+          cash.repo.ts
+        utils/
+          dates.ts
+          money.ts
+      prisma/
+        schema.prisma
+        migrations/
+        seed.ts
+      package.json
+      tsconfig.json
+
+  packages/
+    ui/
+      src/
+        components/
+        index.ts
+      package.json
+    config/
+      eslint/
+      tsconfig/
+      package.json
+
+  .env.development
+  .env.production
+  package.json
+  pnpm-workspace.yaml
+  turbo.json (opcional)
+  README.md

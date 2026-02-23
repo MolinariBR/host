@@ -1,0 +1,978 @@
+openapi: 3.0.3
+info:
+  title: Hotel Santo Antonio API
+  version: 0.1.0
+  description: API para reservas publicas e administracao interna da hospedaria.
+servers:
+  - url: http://localhost:3000
+    description: Local
+tags:
+  - name: Health
+  - name: PublicHotelProfile
+  - name: PublicReviews
+  - name: PublicRooms
+  - name: PublicBookings
+  - name: AdminAuth
+  - name: AdminRooms
+  - name: AdminGuests
+  - name: AdminServices
+  - name: AdminBookings
+  - name: AdminReports
+paths:
+  /health:
+    get:
+      tags: [Health]
+      summary: Health check
+      responses:
+        "200":
+          description: API online
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, timestamp]
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  timestamp:
+                    type: string
+                    format: date-time
+  /hotel-profile:
+    get:
+      tags: [PublicHotelProfile]
+      summary: Obter dados institucionais do hotel
+      responses:
+        "200":
+          description: Perfil institucional
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HotelProfilePublic"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /reviews/google:
+    get:
+      tags: [PublicReviews]
+      summary: Listar avaliacoes publicas do Google Negocios
+      responses:
+        "200":
+          description: Avaliacoes retornadas
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicGoogleReviewsResponse"
+        "502":
+          description: Falha ao consultar provider externo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /rooms:
+    get:
+      tags: [PublicRooms]
+      summary: Listar quartos disponiveis para reserva
+      responses:
+        "200":
+          description: Lista de quartos
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Room"
+  /bookings:
+    post:
+      tags: [PublicBookings]
+      summary: Criar reserva publica
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PublicBookingCreateInput"
+      responses:
+        "201":
+          description: Reserva criada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicBookingCreatedResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  /bookings/lookup:
+    get:
+      tags: [PublicBookings]
+      summary: Consultar reservas por email
+      parameters:
+        - in: query
+          name: email
+          required: true
+          schema:
+            type: string
+            format: email
+        - in: query
+          name: bookingCode
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Lista de reservas encontradas
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/BookingPublicView"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  /bookings/{bookingCode}/whatsapp-link:
+    get:
+      tags: [PublicBookings]
+      summary: Gerar link de WhatsApp para tratativa de pagamento
+      parameters:
+        - in: path
+          name: bookingCode
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Link gerado
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [url]
+                properties:
+                  url:
+                    type: string
+                    format: uri
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /admin/auth/login:
+    post:
+      tags: [AdminAuth]
+      summary: Login administrativo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminLoginInput"
+      responses:
+        "200":
+          description: Login realizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminAuthResponse"
+        "401":
+          description: Credenciais invalidas
+  /admin/rooms:
+    get:
+      tags: [AdminRooms]
+      security:
+        - bearerAuth: []
+      summary: Listar quartos
+      responses:
+        "200":
+          description: Lista de quartos
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Room"
+    post:
+      tags: [AdminRooms]
+      security:
+        - bearerAuth: []
+      summary: Criar quarto
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoomCreateInput"
+      responses:
+        "201":
+          description: Quarto criado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Room"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  /admin/rooms/{roomId}:
+    get:
+      tags: [AdminRooms]
+      security:
+        - bearerAuth: []
+      summary: Buscar quarto por id
+      parameters:
+        - in: path
+          name: roomId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Quarto encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Room"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      tags: [AdminRooms]
+      security:
+        - bearerAuth: []
+      summary: Atualizar quarto
+      parameters:
+        - in: path
+          name: roomId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoomUpdateInput"
+      responses:
+        "200":
+          description: Quarto atualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Room"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      tags: [AdminRooms]
+      security:
+        - bearerAuth: []
+      summary: Remover quarto
+      parameters:
+        - in: path
+          name: roomId
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Quarto removido
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /admin/guests:
+    get:
+      tags: [AdminGuests]
+      security:
+        - bearerAuth: []
+      summary: Listar hospedes
+      parameters:
+        - in: query
+          name: search
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Lista de hospedes
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Guest"
+  /admin/guests/{guestId}:
+    get:
+      tags: [AdminGuests]
+      security:
+        - bearerAuth: []
+      summary: Buscar hospede por id
+      parameters:
+        - in: path
+          name: guestId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Hospede encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Guest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /admin/services:
+    get:
+      tags: [AdminServices]
+      security:
+        - bearerAuth: []
+      summary: Listar servicos
+      responses:
+        "200":
+          description: Lista de servicos
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Service"
+    post:
+      tags: [AdminServices]
+      security:
+        - bearerAuth: []
+      summary: Criar servico
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ServiceCreateInput"
+      responses:
+        "201":
+          description: Servico criado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Service"
+  /admin/services/{serviceId}:
+    patch:
+      tags: [AdminServices]
+      security:
+        - bearerAuth: []
+      summary: Atualizar servico
+      parameters:
+        - in: path
+          name: serviceId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ServiceUpdateInput"
+      responses:
+        "200":
+          description: Servico atualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Service"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      tags: [AdminServices]
+      security:
+        - bearerAuth: []
+      summary: Remover servico
+      parameters:
+        - in: path
+          name: serviceId
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Servico removido
+  /admin/bookings:
+    get:
+      tags: [AdminBookings]
+      security:
+        - bearerAuth: []
+      summary: Listar reservas
+      parameters:
+        - in: query
+          name: status
+          required: false
+          schema:
+            $ref: "#/components/schemas/BookingStatus"
+        - in: query
+          name: from
+          required: false
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: to
+          required: false
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: Lista de reservas
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/BookingAdminView"
+  /admin/bookings/{bookingId}:
+    get:
+      tags: [AdminBookings]
+      security:
+        - bearerAuth: []
+      summary: Buscar reserva por id
+      parameters:
+        - in: path
+          name: bookingId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Reserva encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BookingAdminView"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      tags: [AdminBookings]
+      security:
+        - bearerAuth: []
+      summary: Atualizar status e observacoes da reserva
+      parameters:
+        - in: path
+          name: bookingId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookingUpdateInput"
+      responses:
+        "200":
+          description: Reserva atualizada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BookingAdminView"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /admin/reports/summary:
+    get:
+      tags: [AdminReports]
+      security:
+        - bearerAuth: []
+      summary: Resumo de ocupacao e receita
+      parameters:
+        - in: query
+          name: from
+          required: true
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: to
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: Resumo consolidado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReportSummary"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  responses:
+    BadRequest:
+      description: Requisicao invalida
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    NotFound:
+      description: Recurso nao encontrado
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+  schemas:
+    ErrorResponse:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            type: string
+    RoomType:
+      type: string
+      enum: [STANDARD, DELUXE, PREMIUM, SUITE]
+    RoomStatus:
+      type: string
+      enum: [AVAILABLE, OCCUPIED, MAINTENANCE, INACTIVE]
+    BookingStatus:
+      type: string
+      enum: [PENDING, CONFIRMED, CHECKED_IN, CHECKED_OUT, CANCELED, NO_SHOW]
+    PaymentStatus:
+      type: string
+      enum: [PENDING_WHATSAPP, PAID, CANCELED, REFUNDED]
+    ServiceCategory:
+      type: string
+      enum: [FOOD, TRANSPORT, WELLNESS, LEISURE, OTHER]
+    AdminLoginInput:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 6
+    AdminAuthResponse:
+      type: object
+      required: [token, admin]
+      properties:
+        token:
+          type: string
+        admin:
+          type: object
+          required: [id, name, email, role]
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            email:
+              type: string
+              format: email
+            role:
+              type: string
+    HotelProfilePublic:
+      type: object
+      required:
+        [id, legalName, tradeName, cnpj, phone, city, state, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+        legalName:
+          type: string
+        tradeName:
+          type: string
+        cnpj:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+          format: email
+          nullable: true
+        city:
+          type: string
+        state:
+          type: string
+        addressLine:
+          type: string
+          nullable: true
+        googleMapsUrl:
+          type: string
+          format: uri
+          nullable: true
+        googleBusinessUrl:
+          type: string
+          format: uri
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    PublicGoogleReviewItem:
+      type: object
+      required: [authorName, rating, relativePublishTimeDescription, text]
+      properties:
+        authorName:
+          type: string
+        authorProfileUri:
+          type: string
+          format: uri
+          nullable: true
+        authorPhotoUri:
+          type: string
+          format: uri
+          nullable: true
+        rating:
+          type: number
+        relativePublishTimeDescription:
+          type: string
+        publishTime:
+          type: string
+          format: date-time
+          nullable: true
+        text:
+          type: string
+        googleMapsUri:
+          type: string
+          format: uri
+          nullable: true
+    PublicGoogleReviewsResponse:
+      type: object
+      required: [source, enabled, items, updatedAt]
+      properties:
+        source:
+          type: string
+          enum: [GOOGLE]
+        enabled:
+          type: boolean
+        placeName:
+          type: string
+          nullable: true
+        placeGoogleMapsUri:
+          type: string
+          format: uri
+          nullable: true
+        rating:
+          type: number
+          nullable: true
+        userRatingCount:
+          type: integer
+          nullable: true
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicGoogleReviewItem"
+        updatedAt:
+          type: string
+          format: date-time
+    Guest:
+      type: object
+      required: [id, name, email, phone, createdAt]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        document:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+    Room:
+      type: object
+      required: [id, number, type, capacity, basePriceCents, status]
+      properties:
+        id:
+          type: string
+        number:
+          type: string
+        name:
+          type: string
+          nullable: true
+        type:
+          $ref: "#/components/schemas/RoomType"
+        capacity:
+          type: integer
+          minimum: 1
+        description:
+          type: string
+          nullable: true
+        basePriceCents:
+          type: integer
+          minimum: 0
+        seasonalPriceCents:
+          type: integer
+          minimum: 0
+          nullable: true
+        status:
+          $ref: "#/components/schemas/RoomStatus"
+    Service:
+      type: object
+      required: [id, name, category, priceCents, isActive]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        category:
+          $ref: "#/components/schemas/ServiceCategory"
+        priceCents:
+          type: integer
+          minimum: 0
+        isActive:
+          type: boolean
+    RoomCreateInput:
+      type: object
+      required: [number, type, capacity, basePriceCents]
+      properties:
+        number:
+          type: string
+        name:
+          type: string
+        type:
+          $ref: "#/components/schemas/RoomType"
+        capacity:
+          type: integer
+          minimum: 1
+        description:
+          type: string
+        basePriceCents:
+          type: integer
+          minimum: 0
+        seasonalPriceCents:
+          type: integer
+          minimum: 0
+    RoomUpdateInput:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          $ref: "#/components/schemas/RoomType"
+        capacity:
+          type: integer
+          minimum: 1
+        description:
+          type: string
+        basePriceCents:
+          type: integer
+          minimum: 0
+        seasonalPriceCents:
+          type: integer
+          minimum: 0
+        status:
+          $ref: "#/components/schemas/RoomStatus"
+    ServiceCreateInput:
+      type: object
+      required: [name, category, priceCents]
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        category:
+          $ref: "#/components/schemas/ServiceCategory"
+        priceCents:
+          type: integer
+          minimum: 0
+        isActive:
+          type: boolean
+          default: true
+    ServiceUpdateInput:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        category:
+          $ref: "#/components/schemas/ServiceCategory"
+        priceCents:
+          type: integer
+          minimum: 0
+        isActive:
+          type: boolean
+    PublicBookingServiceInput:
+      type: object
+      required: [serviceId, quantity]
+      properties:
+        serviceId:
+          type: string
+        quantity:
+          type: integer
+          minimum: 1
+    PublicBookingCreateInput:
+      type: object
+      required:
+        [guestName, guestEmail, guestPhone, roomId, checkIn, checkOut, guestsCount]
+      properties:
+        guestName:
+          type: string
+        guestEmail:
+          type: string
+          format: email
+        guestPhone:
+          type: string
+        guestDocument:
+          type: string
+        roomId:
+          type: string
+        checkIn:
+          type: string
+          format: date
+        checkOut:
+          type: string
+          format: date
+        guestsCount:
+          type: integer
+          minimum: 1
+        notes:
+          type: string
+        serviceItems:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicBookingServiceInput"
+    PublicBookingCreatedResponse:
+      type: object
+      required: [bookingCode, status, paymentStatus, whatsappUrl]
+      properties:
+        bookingCode:
+          type: string
+          example: HSA-20260223-001
+        status:
+          $ref: "#/components/schemas/BookingStatus"
+        paymentStatus:
+          $ref: "#/components/schemas/PaymentStatus"
+        whatsappUrl:
+          type: string
+          format: uri
+    BookingPublicView:
+      type: object
+      required:
+        [bookingCode, status, paymentStatus, checkIn, checkOut, roomNumber, totalCents]
+      properties:
+        bookingCode:
+          type: string
+        status:
+          $ref: "#/components/schemas/BookingStatus"
+        paymentStatus:
+          $ref: "#/components/schemas/PaymentStatus"
+        checkIn:
+          type: string
+          format: date
+        checkOut:
+          type: string
+          format: date
+        roomNumber:
+          type: string
+        totalCents:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+    BookingAdminView:
+      type: object
+      required:
+        [id, bookingCode, status, paymentStatus, guest, room, checkIn, checkOut, totalCents]
+      properties:
+        id:
+          type: string
+        bookingCode:
+          type: string
+        status:
+          $ref: "#/components/schemas/BookingStatus"
+        paymentStatus:
+          $ref: "#/components/schemas/PaymentStatus"
+        guest:
+          $ref: "#/components/schemas/Guest"
+        room:
+          $ref: "#/components/schemas/Room"
+        checkIn:
+          type: string
+          format: date
+        checkOut:
+          type: string
+          format: date
+        guestsCount:
+          type: integer
+        notes:
+          type: string
+          nullable: true
+        totalCents:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+    BookingUpdateInput:
+      type: object
+      properties:
+        status:
+          $ref: "#/components/schemas/BookingStatus"
+        paymentStatus:
+          $ref: "#/components/schemas/PaymentStatus"
+        notes:
+          type: string
+    ReportSummary:
+      type: object
+      required:
+        [from, to, totalRevenueCents, totalBookings, occupancyRate, byRoom]
+      properties:
+        from:
+          type: string
+          format: date
+        to:
+          type: string
+          format: date
+        totalRevenueCents:
+          type: integer
+        totalBookings:
+          type: integer
+        occupancyRate:
+          type: number
+          format: float
+        byRoom:
+          type: array
+          items:
+            type: object
+            required: [roomId, roomNumber, bookings, revenueCents, occupancyRate]
+            properties:
+              roomId:
+                type: string
+              roomNumber:
+                type: string
+              bookings:
+                type: integer
+              revenueCents:
+                type: integer
+              occupancyRate:
+                type: number
+                format: float

@@ -1,0 +1,159 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum RoomType {
+  STANDARD
+  DELUXE
+  PREMIUM
+  SUITE
+}
+
+enum RoomStatus {
+  AVAILABLE
+  OCCUPIED
+  MAINTENANCE
+  INACTIVE
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CHECKED_IN
+  CHECKED_OUT
+  CANCELED
+  NO_SHOW
+}
+
+enum PaymentStatus {
+  PENDING_WHATSAPP
+  PAID
+  CANCELED
+  REFUNDED
+}
+
+enum BookingSource {
+  WEB
+  ADMIN
+}
+
+enum ServiceCategory {
+  FOOD
+  TRANSPORT
+  WELLNESS
+  LEISURE
+  OTHER
+}
+
+model HotelProfile {
+  id                String   @id
+  legalName         String
+  tradeName         String
+  cnpj              String   @unique
+  phone             String
+  email             String?
+  city              String
+  state             String
+  addressLine       String?
+  googleMapsUrl     String?
+  googleBusinessUrl String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         String   @default("ADMIN")
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Guest {
+  id        String    @id @default(cuid())
+  name      String
+  email     String    @unique
+  phone     String
+  document  String?   @unique
+  address   String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  bookings  Booking[]
+}
+
+model Room {
+  id                 String     @id @default(cuid())
+  number             String     @unique
+  name               String?
+  type               RoomType
+  capacity           Int
+  description        String?
+  basePriceCents     Int
+  seasonalPriceCents Int?
+  status             RoomStatus @default(AVAILABLE)
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+  bookings           Booking[]
+}
+
+model Service {
+  id          String           @id @default(cuid())
+  name        String           @unique
+  description String?
+  category    ServiceCategory  @default(OTHER)
+  priceCents  Int
+  isActive    Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  bookings    BookingService[]
+}
+
+model Booking {
+  id                 String        @id @default(cuid())
+  bookingCode        String        @unique
+  guestId            String
+  roomId             String
+  status             BookingStatus @default(PENDING)
+  paymentStatus      PaymentStatus @default(PENDING_WHATSAPP)
+  source             BookingSource @default(WEB)
+  checkIn            DateTime
+  checkOut           DateTime
+  guestsCount        Int
+  nightlyRateCents   Int
+  extraServicesCents Int           @default(0)
+  totalCents         Int
+  notes              String?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  guest    Guest            @relation(fields: [guestId], references: [id], onDelete: Restrict)
+  room     Room             @relation(fields: [roomId], references: [id], onDelete: Restrict)
+  services BookingService[]
+
+  @@index([guestId])
+  @@index([roomId, checkIn, checkOut])
+  @@index([status])
+}
+
+model BookingService {
+  bookingId      String
+  serviceId      String
+  quantity       Int      @default(1)
+  unitPriceCents Int
+  totalCents     Int
+  createdAt      DateTime @default(now())
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  service Service @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+
+  @@id([bookingId, serviceId])
+  @@index([serviceId])
+}
