@@ -1,0 +1,67 @@
+name: Deploy to Squarecloud
+
+on:
+  push:
+    branches:
+      - main # ou master, dependendo da sua branch principal
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # ==========================================
+      # 1. BUILD DO FRONTEND
+      # ==========================================
+      - name: Install Frontend Dependencies
+        run: npm install
+
+      - name: Build Frontend
+        run: npm run build
+
+      # ==========================================
+      # 2. BUILD DO BACKEND
+      # ==========================================
+      - name: Install Backend Dependencies
+        working-directory: ./backend
+        run: npm install
+
+      - name: Generate Prisma Client
+        working-directory: ./backend
+        run: npx prisma generate
+
+      - name: Build Backend
+        working-directory: ./backend
+        run: npm run build
+
+      # ==========================================
+      # 3. LIMPEZA E PREPARAÇÃO DO DEPLOY
+      # Remove os arquivos de código-fonte para economizar
+      # espaço e enviar apenas o Frontend (dist) e Backend (dist).
+      # ==========================================
+      - name: Clean up dev files
+        run: |
+          # Remove código fonte do backend
+          rm -rf backend/src/
+          
+          # Remove dependências (o start.js faz a instalação na Squarecloud limpa)
+          rm -rf backend/node_modules/
+          
+          # Mantém apenas a pasta raiz e tudo o que for rodar (inclui /dist do frontend)
+
+      # ==========================================
+      # 4. DEPLOY PARA SQUARECLOUD (Front + Back Compartilhado)
+      # ==========================================
+      - name: Deploy to Squarecloud
+        uses: squarecloudofc/github-action@v2.0.0
+        with:
+          token: ${{ secrets.SQUARECLOUD_TOKEN }}
+          command: commit ${{ secrets.SQUARECLOUD_APP_ID }} --restart
