@@ -69,7 +69,7 @@ jobs:
           JWT_EXPIRES_IN="24h"
           WHATSAPP_PHONE="+5563981217810"
           DEFAULT_ADMIN_EMAIL="admin@hotelsantoantonio.com.br"
-          DEFAULT_ADMIN_PASSWORD="change-this-password"
+          DEFAULT_ADMIN_PASSWORD="admin123"
           ENVFILE
           
           # Força a adicionar os arquivos gerados no build (mesmo estando no .gitignore)
