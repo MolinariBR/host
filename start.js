@@ -18,6 +18,23 @@ try {
   process.exit(1);
 }
 
+console.log('🗃️ Rodando migrações do banco de dados...');
+try {
+  execSync('cd backend && npx prisma migrate deploy', { stdio: 'inherit' });
+} catch (error) {
+  console.error('Erro ao rodar migrações do Prisma:', error);
+  process.exit(1);
+}
+
+console.log('🌱 Semeando dados iniciais no banco (Seed)...');
+try {
+  // Roda o seed usando o arquivo compilado
+  execSync('cd backend && node dist/prisma/seed.js', { stdio: 'inherit' });
+} catch (error) {
+  console.error('Erro ao semear o banco:', error);
+  process.exit(1);
+}
+
 console.log('🚀 Iniciando o servidor backend...');
 try {
   execSync('cd backend && npm start', { stdio: 'inherit' });

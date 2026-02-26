@@ -67,6 +67,8 @@ jobs:
           JWT_SECRET="squarecloud-hsa-secret-token"
           JWT_EXPIRES_IN="24h"
           WHATSAPP_PHONE="+5563981217810"
+          DEFAULT_ADMIN_EMAIL="admin@hotelsantoantonio.com.br"
+          DEFAULT_ADMIN_PASSWORD="change-this-password"
           ENVFILE
           
           # Força a adicionar os arquivos gerados no build (mesmo estando no .gitignore)
