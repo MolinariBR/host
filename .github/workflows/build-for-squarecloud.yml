@@ -64,6 +64,7 @@ jobs:
           DATABASE_URL="file:./database.sqlite"
           PORT="80"
           HOST="0.0.0.0"
+          NODE_ENV="production"
           JWT_SECRET="squarecloud-hsa-secret-token"
           JWT_EXPIRES_IN="24h"
           WHATSAPP_PHONE="+5563981217810"

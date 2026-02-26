@@ -5,6 +5,7 @@ export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
     path: "prisma/migrations",
-    seed: "tsx prisma/seed.ts",
+    // Na nuvem rodará o node compilado, em desenvolvimento usa tsx
+    seed: process.env.NODE_ENV === "production" ? "node dist/prisma/seed.js" : "tsx prisma/seed.ts",
   },
 });
