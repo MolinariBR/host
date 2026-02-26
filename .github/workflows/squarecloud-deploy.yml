@@ -64,5 +64,4 @@ jobs:
         uses: squarecloudofc/github-action@v2.0.0
         with:
           token: ${{ secrets.SQUARECLOUD_TOKEN }}
-          application_id: ${{ secrets.SQUARECLOUD_APP_ID }}
-          restart: true
+          command: commit ${{ secrets.SQUARECLOUD_APP_ID }} --restart
