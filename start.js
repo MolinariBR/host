@@ -28,8 +28,8 @@ try {
 
 console.log('🌱 Semeando dados iniciais no banco (Seed)...');
 try {
-  // Roda o seed usando o arquivo compilado
-  execSync('cd backend && node dist/prisma/seed.js', { stdio: 'inherit' });
+  // Roda o seed usando a engine oficial do Prisma (que lerá do package.json)
+  execSync('cd backend && npx prisma db seed', { stdio: 'inherit' });
 } catch (error) {
   console.error('Erro ao semear o banco:', error);
   process.exit(1);
