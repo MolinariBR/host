@@ -61,7 +61,7 @@ jobs:
       # 4. DEPLOY PARA SQUARECLOUD (Front + Back Compartilhado)
       # ==========================================
       - name: Deploy to Squarecloud
-        uses: squarecloudofc/github-action@v1.0.1
+        uses: squarecloudofc/github-action@v2.0.0
         with:
           token: ${{ secrets.SQUARECLOUD_TOKEN }}
           application_id: ${{ secrets.SQUARECLOUD_APP_ID }}
