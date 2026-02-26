@@ -546,7 +546,10 @@ components:
             type: string
     RoomType:
       type: string
-      enum: [STANDARD, DELUXE, PREMIUM, SUITE]
+      enum: [FAMILIA, CASAL, DUPLO, INDIVIDUAL, ECONOMICO]
+    Climatizacao:
+      type: string
+      enum: [CENTRAL_AR, VENTILADOR]
     RoomStatus:
       type: string
       enum: [AVAILABLE, OCCUPIED, MAINTENANCE, INACTIVE]
@@ -706,7 +709,7 @@ components:
           format: date-time
     Room:
       type: object
-      required: [id, number, type, capacity, basePriceCents, status]
+      required: [id, number, type, hasBathroom, capacity, basePriceCents, status]
       properties:
         id:
           type: string
@@ -717,6 +720,12 @@ components:
           nullable: true
         type:
           $ref: "#/components/schemas/RoomType"
+        climatizacao:
+          allOf:
+            - $ref: "#/components/schemas/Climatizacao"
+          nullable: true
+        hasBathroom:
+          type: boolean
         capacity:
           type: integer
           minimum: 1
@@ -760,6 +769,10 @@ components:
           type: string
         type:
           $ref: "#/components/schemas/RoomType"
+        climatizacao:
+          $ref: "#/components/schemas/Climatizacao"
+        hasBathroom:
+          type: boolean
         capacity:
           type: integer
           minimum: 1
@@ -778,6 +791,12 @@ components:
           type: string
         type:
           $ref: "#/components/schemas/RoomType"
+        climatizacao:
+          allOf:
+            - $ref: "#/components/schemas/Climatizacao"
+          nullable: true
+        hasBathroom:
+          type: boolean
         capacity:
           type: integer
           minimum: 1
@@ -833,7 +852,7 @@ components:
     PublicBookingCreateInput:
       type: object
       required:
-        [guestName, guestEmail, guestPhone, roomId, checkIn, checkOut, guestsCount]
+        [guestName, guestEmail, guestPhone, guestDocument, roomId, checkIn, checkOut, guestsCount]
       properties:
         guestName:
           type: string
@@ -844,6 +863,7 @@ components:
           type: string
         guestDocument:
           type: string
+          description: CPF (11 digitos) ou CNPJ (14 digitos)
         roomId:
           type: string
         checkIn:

@@ -20,6 +20,18 @@ export function sendPrismaError(reply: FastifyReply, error: unknown) {
     if (error.code === "P2025") {
       return reply.code(404).send({ message: "Resource not found." });
     }
+    if (error.code === "P2022") {
+      return reply.code(500).send({
+        message:
+          "Database schema is out of sync with the application. Run Prisma sync/migrations.",
+      });
+    }
+  }
+  if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+    return reply.code(500).send({
+      message:
+        "Database request failed. Verify Prisma schema/data consistency and run migrations/seed.",
+    });
   }
   return reply.code(500).send({ message: "Internal server error." });
 }

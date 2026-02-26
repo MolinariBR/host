@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import toast from 'react-hot-toast'
 import Navbar from '../../components/Navbar'
 import AdminNavbar from '../../components/AdminNavbar'
@@ -57,7 +57,7 @@ export default function ReservationsManagement() {
   const [loading, setLoading] = useState(true)
   const [reservations, setReservations] = useState<Booking[]>([])
 
-  async function loadReservations() {
+  const loadReservations = useCallback(async () => {
     setLoading(true)
     try {
       const response = await api.listBookings({
@@ -69,11 +69,11 @@ export default function ReservationsManagement() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [filterStatus])
 
   useEffect(() => {
     void loadReservations()
-  }, [filterStatus])
+  }, [loadReservations])
 
   const filteredReservations = useMemo(
     () =>

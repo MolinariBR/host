@@ -4,13 +4,16 @@ import { prisma } from "../lib/prisma.js";
 import * as roomsService from "../services/rooms.service.js";
 import { sendPrismaError, sendZodError } from "../utils/errors.js";
 
-const roomType = z.enum(["STANDARD", "DELUXE", "PREMIUM", "SUITE"]);
+const roomType = z.enum(["FAMILIA", "CASAL", "DUPLO", "INDIVIDUAL", "ECONOMICO"]);
+const climatizacaoType = z.enum(["CENTRAL_AR", "VENTILADOR"]);
 const roomStatus = z.enum(["AVAILABLE", "OCCUPIED", "MAINTENANCE", "INACTIVE"]);
 
 const createRoomSchema = z.object({
   number: z.string().min(1),
   name: z.string().optional(),
   type: roomType,
+  climatizacao: climatizacaoType.optional(),
+  hasBathroom: z.boolean().optional(),
   capacity: z.number().int().min(1),
   description: z.string().optional(),
   basePriceCents: z.number().int().min(0),
@@ -20,6 +23,8 @@ const createRoomSchema = z.object({
 const updateRoomSchema = z.object({
   name: z.string().optional(),
   type: roomType.optional(),
+  climatizacao: climatizacaoType.nullable().optional(),
+  hasBathroom: z.boolean().optional(),
   capacity: z.number().int().min(1).optional(),
   description: z.string().optional(),
   basePriceCents: z.number().int().min(0).optional(),

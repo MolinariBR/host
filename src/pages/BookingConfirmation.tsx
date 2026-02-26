@@ -1,6 +1,8 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { CheckCircle, MessageCircle, Home, Calendar, User, Phone, Hash } from 'lucide-react'
 import Navbar from '../components/Navbar'
+import PageSeo from '../components/PageSeo'
+import { appConfig } from '../config/app-config'
 import type { CreateBookingResponse, PublicRoom } from '../lib/api'
 
 type ConfirmationState = {
@@ -8,6 +10,7 @@ type ConfirmationState = {
     guestName: string
     guestEmail: string
     guestPhone: string
+    guestDocument: string
     checkIn: string
     checkOut: string
     guestsCount: number
@@ -31,8 +34,14 @@ export default function BookingConfirmation() {
   if (!bookingRequest || !bookingResponse) {
     return (
       <div className="min-h-screen bg-gray-50">
+        <PageSeo
+          title={`Confirmacao de Reserva | ${appConfig.fallbackHotelName}`}
+          description="Nao ha uma reserva para exibir nesta sessao."
+          pathname="/confirmacao"
+          robots="noindex, nofollow"
+        />
         <Navbar />
-        <div className="pt-28 px-4">
+        <main id="main-content" className="pt-28 px-4">
           <div className="max-w-xl mx-auto bg-white border border-gray-200 rounded-2xl p-8 text-center">
             <h1 className="text-2xl font-bold text-slate-900 mb-3">Nenhuma reserva para exibir</h1>
             <p className="text-slate-600 mb-6">
@@ -45,16 +54,22 @@ export default function BookingConfirmation() {
               Fazer Reserva
             </button>
           </div>
-        </div>
+        </main>
       </div>
     )
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <PageSeo
+        title={`Reserva Confirmada | ${appConfig.fallbackHotelName}`}
+        description="Resumo da reserva criada com codigo de atendimento e proximo passo para pagamento via WhatsApp."
+        pathname="/confirmacao"
+        robots="noindex, nofollow"
+      />
       <Navbar />
 
-      <div className="pt-24 pb-16 px-4 sm:px-6 lg:px-8">
+      <main id="main-content" className="pt-24 pb-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-12">
             <div className="inline-flex items-center justify-center w-24 h-24 bg-emerald-100 rounded-full mb-6">
@@ -84,6 +99,7 @@ export default function BookingConfirmation() {
                   <p className="text-sm font-semibold text-slate-600 mb-1">Hóspede</p>
                   <p className="text-lg font-bold text-slate-900">{bookingRequest.guestName}</p>
                   <p className="text-sm text-slate-600">{bookingRequest.guestEmail}</p>
+                  <p className="text-sm text-slate-600">CPF/CNPJ: {bookingRequest.guestDocument}</p>
                 </div>
               </div>
 
@@ -157,7 +173,7 @@ export default function BookingConfirmation() {
             </ul>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   )
 }

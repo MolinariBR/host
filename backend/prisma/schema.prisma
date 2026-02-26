@@ -8,10 +8,16 @@ datasource db {
 }
 
 enum RoomType {
-  STANDARD
-  DELUXE
-  PREMIUM
-  SUITE
+  FAMILIA
+  CASAL
+  DUPLO
+  INDIVIDUAL
+  ECONOMICO
+}
+
+enum Climatizacao {
+  CENTRAL_AR
+  VENTILADOR
 }
 
 enum RoomStatus {
@@ -94,6 +100,8 @@ model Room {
   number             String     @unique
   name               String?
   type               RoomType
+  climatizacao       Climatizacao?
+  hasBathroom        Boolean    @default(true)
   capacity           Int
   description        String?
   basePriceCents     Int

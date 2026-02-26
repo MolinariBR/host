@@ -1,0 +1,1 @@
+ALTER TABLE "Room" ADD COLUMN "hasBathroom" BOOLEAN NOT NULL DEFAULT true;

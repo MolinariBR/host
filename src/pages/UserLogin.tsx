@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { Mail, ArrowLeft, Search, MessageCircle, Calendar, Hash } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Navbar from '../components/Navbar'
+import PageSeo from '../components/PageSeo'
+import { useHotelProfile } from '../hooks/useHotelProfile'
 import { api, type PublicBookingItem } from '../lib/api'
 import { appConfig } from '../config/app-config'
 
@@ -16,10 +18,12 @@ function formatDate(value: string) {
 
 export default function UserLogin() {
   const navigate = useNavigate()
+  const { profile } = useHotelProfile()
   const [email, setEmail] = useState('')
   const [bookingCode, setBookingCode] = useState('')
   const [loading, setLoading] = useState(false)
   const [items, setItems] = useState<PublicBookingItem[]>([])
+  const hotelName = profile?.tradeName || appConfig.fallbackHotelName
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -48,9 +52,18 @@ export default function UserLogin() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <PageSeo
+        title={`Consultar Reserva | ${hotelName}`}
+        description="Acesse sua reserva para consultar status, periodo da estadia e atalho para atendimento via WhatsApp."
+        pathname="/login"
+        imageUrl="/seo/hero-hotel-santo-antonio.webp"
+        imageAlt={`Consulta de reservas do ${hotelName}`}
+        siteName={hotelName}
+        robots="noindex, nofollow"
+      />
       <Navbar />
 
-      <div className="pt-24 pb-16 px-4 sm:px-6 lg:px-8">
+      <main id="main-content" className="pt-24 pb-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-slate-900 mb-4">Acesso Hóspede</h1>
@@ -160,7 +173,7 @@ export default function UserLogin() {
             </button>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   )
 }

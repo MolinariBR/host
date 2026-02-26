@@ -30,6 +30,10 @@ async function getFirstAvailableRoom(): Promise<PublicRoom> {
 async function createBookingForEmail(email: string) {
   const room = await getFirstAvailableRoom();
   const now = Date.now();
+  const uniqueDocument = `${now}${Math.floor(Math.random() * 1000)}`
+    .replace(/\D/g, "")
+    .slice(-11)
+    .padStart(11, "0");
   const response = await app.inject({
     method: "POST",
     url: "/bookings",
@@ -37,6 +41,7 @@ async function createBookingForEmail(email: string) {
       guestName: "Teste Integracao",
       guestEmail: email,
       guestPhone: "+55 11 99999-0000",
+      guestDocument: uniqueDocument,
       roomId: room.id,
       checkIn: "2026-12-10",
       checkOut: "2026-12-12",

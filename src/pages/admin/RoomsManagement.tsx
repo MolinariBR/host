@@ -19,22 +19,26 @@ type RoomForm = {
   number: string
   name: string
   type: Room['type']
+  hasBathroom: boolean
   capacity: number
   description: string
   basePrice: number
   seasonalPrice: number
   status: Room['status']
+  climatizacao: Room['climatizacao']
 }
 
 const emptyForm: RoomForm = {
   number: '',
   name: '',
-  type: 'STANDARD',
+  type: 'FAMILIA',
+  hasBathroom: true,
   capacity: 1,
   description: '',
   basePrice: 0,
   seasonalPrice: 0,
   status: 'AVAILABLE',
+  climatizacao: null,
 }
 
 function toCurrency(cents: number | null | undefined) {
@@ -97,11 +101,13 @@ export default function RoomsManagement() {
       number: room.number,
       name: room.name || '',
       type: room.type,
+      hasBathroom: room.hasBathroom,
       capacity: room.capacity,
       description: room.description || '',
       basePrice: room.basePriceCents / 100,
       seasonalPrice: (room.seasonalPriceCents || 0) / 100,
       status: room.status,
+      climatizacao: room.climatizacao || null,
     })
     setShowEditModal(true)
   }
@@ -112,10 +118,12 @@ export default function RoomsManagement() {
         number: formData.number,
         name: formData.name || undefined,
         type: formData.type,
+        hasBathroom: formData.hasBathroom,
         capacity: formData.capacity,
         description: formData.description || undefined,
         basePriceCents: Math.round(formData.basePrice * 100),
         seasonalPriceCents: formData.seasonalPrice > 0 ? Math.round(formData.seasonalPrice * 100) : undefined,
+        climatizacao: formData.climatizacao || undefined,
       })
       toast.success('Quarto adicionado com sucesso.')
       setShowAddModal(false)
@@ -131,11 +139,13 @@ export default function RoomsManagement() {
       await api.updateRoom(selectedRoom.id, {
         name: formData.name || undefined,
         type: formData.type,
+        hasBathroom: formData.hasBathroom,
         capacity: formData.capacity,
         description: formData.description || undefined,
         basePriceCents: Math.round(formData.basePrice * 100),
         seasonalPriceCents: formData.seasonalPrice > 0 ? Math.round(formData.seasonalPrice * 100) : null,
         status: formData.status,
+        climatizacao: formData.climatizacao || null,
       })
       toast.success('Quarto atualizado com sucesso.')
       setShowEditModal(false)
@@ -252,6 +262,10 @@ export default function RoomsManagement() {
                     </span>
                   </div>
 
+                  <div className="p-3 bg-gray-50 rounded-xl text-sm text-slate-600">
+                    Banheiro: <span className="font-bold text-slate-900">{room.hasBathroom ? 'Com banheiro' : 'Sem banheiro'}</span>
+                  </div>
+
                   <div className="grid grid-cols-2 gap-2 pt-4">
                     <button
                       onClick={() => openEditModal(room)}
@@ -321,10 +335,23 @@ export default function RoomsManagement() {
                     onChange={(e) => setFormData({ ...formData, type: e.target.value as Room['type'] })}
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl"
                   >
-                    <option value="STANDARD">STANDARD</option>
-                    <option value="DELUXE">DELUXE</option>
-                    <option value="PREMIUM">PREMIUM</option>
-                    <option value="SUITE">SUITE</option>
+                    <option value="FAMILIA">Família</option>
+                    <option value="CASAL">Casal</option>
+                    <option value="DUPLO">Duplo</option>
+                    <option value="INDIVIDUAL">Individual</option>
+                    <option value="ECONOMICO">Econômico</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">Climatização</label>
+                  <select
+                    value={formData.climatizacao || ''}
+                    onChange={(e) => setFormData({ ...formData, climatizacao: e.target.value as Room['climatizacao'] })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl"
+                  >
+                    <option value="">Selecione...</option>
+                    <option value="CENTRAL_AR">Central de Ar</option>
+                    <option value="VENTILADOR">Ventilador</option>
                   </select>
                 </div>
                 <div>
@@ -336,6 +363,17 @@ export default function RoomsManagement() {
                     onChange={(e) => setFormData({ ...formData, capacity: Number(e.target.value) })}
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl"
                   />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">Banheiro</label>
+                  <select
+                    value={formData.hasBathroom ? 'true' : 'false'}
+                    onChange={(e) => setFormData({ ...formData, hasBathroom: e.target.value === 'true' })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl"
+                  >
+                    <option value="true">Com banheiro</option>
+                    <option value="false">Sem banheiro</option>
+                  </select>
                 </div>
               </div>
 
@@ -420,15 +458,28 @@ export default function RoomsManagement() {
                     onChange={(e) => setFormData({ ...formData, type: e.target.value as Room['type'] })}
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl"
                   >
-                    <option value="STANDARD">STANDARD</option>
-                    <option value="DELUXE">DELUXE</option>
-                    <option value="PREMIUM">PREMIUM</option>
-                    <option value="SUITE">SUITE</option>
+                    <option value="FAMILIA">Família</option>
+                    <option value="CASAL">Casal</option>
+                    <option value="DUPLO">Duplo</option>
+                    <option value="INDIVIDUAL">Individual</option>
+                    <option value="ECONOMICO">Econômico</option>
                   </select>
                 </div>
               </div>
 
               <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">Climatização</label>
+                  <select
+                    value={formData.climatizacao || ''}
+                    onChange={(e) => setFormData({ ...formData, climatizacao: e.target.value as Room['climatizacao'] })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl"
+                  >
+                    <option value="">Selecione...</option>
+                    <option value="CENTRAL_AR">Central de Ar</option>
+                    <option value="VENTILADOR">Ventilador</option>
+                  </select>
+                </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">Capacidade</label>
                   <input
@@ -438,6 +489,17 @@ export default function RoomsManagement() {
                     onChange={(e) => setFormData({ ...formData, capacity: Number(e.target.value) })}
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl"
                   />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">Banheiro</label>
+                  <select
+                    value={formData.hasBathroom ? 'true' : 'false'}
+                    onChange={(e) => setFormData({ ...formData, hasBathroom: e.target.value === 'true' })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl"
+                  >
+                    <option value="true">Com banheiro</option>
+                    <option value="false">Sem banheiro</option>
+                  </select>
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">Status</label>

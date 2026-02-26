@@ -12,7 +12,13 @@ const createBookingSchema = z.object({
   guestName: z.string().min(2),
   guestEmail: z.string().email(),
   guestPhone: z.string().min(8),
-  guestDocument: z.string().optional(),
+  guestDocument: z
+    .string()
+    .min(1)
+    .transform((value) => value.replace(/\D/g, ""))
+    .refine((value) => value.length === 11 || value.length === 14, {
+      message: "Must be a valid CPF or CNPJ.",
+    }),
   roomId: z.string().min(1),
   checkIn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   checkOut: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),

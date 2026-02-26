@@ -42,16 +42,20 @@ export type PublicRoom = {
   id: string
   number: string
   name?: string | null
-  type: 'STANDARD' | 'DELUXE' | 'PREMIUM' | 'SUITE'
+  type: 'FAMILIA' | 'CASAL' | 'DUPLO' | 'INDIVIDUAL' | 'ECONOMICO'
+  hasBathroom: boolean
   capacity: number
+  description?: string | null
   basePriceCents: number
   seasonalPriceCents?: number | null
+  climatizacao?: 'CENTRAL_AR' | 'VENTILADOR' | null
 }
 
 export type CreateBookingPayload = {
   guestName: string
   guestEmail: string
   guestPhone: string
+  guestDocument: string
   checkIn: string
   checkOut: string
   guestsCount: number
@@ -81,11 +85,13 @@ export type Room = {
   id: string
   number: string
   name?: string | null
-  type: 'STANDARD' | 'DELUXE' | 'PREMIUM' | 'SUITE'
+  type: 'FAMILIA' | 'CASAL' | 'DUPLO' | 'INDIVIDUAL' | 'ECONOMICO'
+  hasBathroom: boolean
   capacity: number
   description?: string | null
   basePriceCents: number
   seasonalPriceCents?: number | null
+  climatizacao?: 'CENTRAL_AR' | 'VENTILADOR' | null
   status: 'AVAILABLE' | 'OCCUPIED' | 'MAINTENANCE' | 'INACTIVE'
   createdAt: string
   updatedAt: string
@@ -213,10 +219,12 @@ export const api = {
     number: string
     name?: string
     type: Room['type']
+    hasBathroom?: boolean
     capacity: number
     description?: string
     basePriceCents: number
     seasonalPriceCents?: number
+    climatizacao?: Room['climatizacao']
   }) =>
     request<Room>('/admin/rooms', {
       method: 'POST',
@@ -228,11 +236,13 @@ export const api = {
     payload: Partial<{
       name: string
       type: Room['type']
+      hasBathroom: boolean
       capacity: number
       description: string
       basePriceCents: number
       seasonalPriceCents: number | null
       status: Room['status']
+      climatizacao: Room['climatizacao']
     }>
   ) =>
     request<Room>(`/admin/rooms/${roomId}`, {

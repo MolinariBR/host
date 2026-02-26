@@ -12,6 +12,7 @@ import BookingConfirmation from './pages/BookingConfirmation'
 import UserLogin from './pages/UserLogin'
 import AdminLogin from './pages/AdminLogin'
 import AboutPage from './pages/AboutPage'
+import NotFoundPage from './pages/NotFoundPage'
 import RequireAdminAuth from './components/RequireAdminAuth'
 
 function App() {
@@ -33,6 +34,7 @@ function App() {
           <Route path="/admin/servicos" element={<ServicesManagement />} />
           <Route path="/admin/relatorios" element={<ReportsPage />} />
         </Route>
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Router>
   )

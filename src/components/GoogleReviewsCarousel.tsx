@@ -40,7 +40,7 @@ export default function GoogleReviewsCarousel() {
     }
   }, [])
 
-  const items = data?.items || []
+  const items = useMemo(() => data?.items || [], [data])
   const activeReview = useMemo(() => items[currentIndex], [items, currentIndex])
 
   function prev() {

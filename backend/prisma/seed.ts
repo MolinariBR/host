@@ -1,10 +1,28 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, type Climatizacao, type RoomType } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { config } from "dotenv";
 
 config();
 
 const prisma = new PrismaClient();
+
+type SeedRoomDefinition = {
+  number: string;
+  name: string;
+  type: RoomType;
+  climatizacao: Climatizacao;
+  hasBathroom: boolean;
+  capacity: number;
+  basePriceCents: number;
+  bedConfig: string;
+};
+
+function roomDescription(bedConfig: string, hasBathroom: boolean): string {
+  const bathroomText = hasBathroom
+    ? "Com banheiro privativo."
+    : "Sem banheiro privativo (banheiro coletivo).";
+  return `${bedConfig} Todos os quartos possuem armadores de redes. ${bathroomText}`;
+}
 
 async function main() {
   const adminEmail = process.env.DEFAULT_ADMIN_EMAIL || "admin@hotelsantoantonio.com.br";
@@ -20,7 +38,7 @@ async function main() {
       tradeName: "Hotel Santo Antonio",
       cnpj: "33.568.908/0001-55",
       phone: "+55 63 8121-7810",
-      email: "contato@hotelsantoantonio.com.br",
+      email: "jorgecynoleto@hotmail.com",
       city: "Itaguatins",
       state: "TO",
       addressLine: "Centro, Itaguatins - TO",
@@ -34,7 +52,7 @@ async function main() {
       tradeName: "Hotel Santo Antonio",
       cnpj: "33.568.908/0001-55",
       phone: "+55 63 8121-7810",
-      email: "contato@hotelsantoantonio.com.br",
+      email: "jorgecynoleto@hotmail.com",
       city: "Itaguatins",
       state: "TO",
       addressLine: "Centro, Itaguatins - TO",
@@ -62,62 +80,120 @@ async function main() {
     },
   });
 
-  const room101 = await prisma.room.upsert({
-    where: { number: "101" },
-    update: {
-      status: "AVAILABLE",
-      basePriceCents: 18000,
-      seasonalPriceCents: 15000,
-    },
-    create: {
-      number: "101",
-      name: "Quarto Standard",
-      type: "STANDARD",
-      capacity: 2,
-      description: "Quarto confortavel para ate 2 pessoas.",
-      basePriceCents: 18000,
-      seasonalPriceCents: 15000,
-      status: "AVAILABLE",
-    },
-  });
+  // Compatibilidade com bases antigas antes da troca de RoomType.
+  await prisma.$executeRawUnsafe(`UPDATE "Room" SET "type" = 'FAMILIA' WHERE "type" = 'STANDARD'`);
+  await prisma.$executeRawUnsafe(`UPDATE "Room" SET "type" = 'CASAL' WHERE "type" = 'DELUXE'`);
+  await prisma.$executeRawUnsafe(`UPDATE "Room" SET "type" = 'DUPLO' WHERE "type" = 'PREMIUM'`);
+  await prisma.$executeRawUnsafe(`UPDATE "Room" SET "type" = 'INDIVIDUAL' WHERE "type" = 'SUITE'`);
 
-  const room205 = await prisma.room.upsert({
-    where: { number: "205" },
-    update: {
-      status: "MAINTENANCE",
-      basePriceCents: 28000,
-      seasonalPriceCents: 24000,
-    },
-    create: {
-      number: "205",
-      name: "Quarto Deluxe",
-      type: "DELUXE",
-      capacity: 3,
-      description: "Quarto amplo com varanda.",
-      basePriceCents: 28000,
-      seasonalPriceCents: 24000,
-      status: "MAINTENANCE",
-    },
-  });
-
-  const room308 = await prisma.room.upsert({
-    where: { number: "308" },
-    update: {
-      status: "OCCUPIED",
-      basePriceCents: 38000,
-      seasonalPriceCents: 32000,
-    },
-    create: {
-      number: "308",
-      name: "Suite Premium",
-      type: "PREMIUM",
+  const roomDefinitions: SeedRoomDefinition[] = [
+    {
+      number: "001",
+      name: "Quarto Família",
+      type: "FAMILIA",
+      climatizacao: "CENTRAL_AR",
+      hasBathroom: true,
       capacity: 4,
-      description: "Suite premium com mais espaco interno.",
-      basePriceCents: 38000,
-      seasonalPriceCents: 32000,
-      status: "OCCUPIED",
+      basePriceCents: 30000,
+      bedConfig: "4 camas de solteiro + armadores de redes.",
     },
+  ];
+
+  for (let i = 0; i < 8; i += 1) {
+    roomDefinitions.push({
+      number: String(2 + i).padStart(3, "0"),
+      name: "Quarto Casal + Solteiro",
+      type: "CASAL",
+      climatizacao: "CENTRAL_AR",
+      hasBathroom: true,
+      capacity: 3,
+      basePriceCents: 18000,
+      bedConfig: "1 cama de casal + 1 cama de solteiro.",
+    });
+  }
+
+  for (let i = 0; i < 7; i += 1) {
+    roomDefinitions.push({
+      number: String(10 + i).padStart(3, "0"),
+      name: "Quarto Duplo",
+      type: "DUPLO",
+      climatizacao: "CENTRAL_AR",
+      hasBathroom: true,
+      capacity: 2,
+      basePriceCents: 18000,
+      bedConfig: "2 camas de solteiro.",
+    });
+  }
+
+  for (let i = 0; i < 2; i += 1) {
+    roomDefinitions.push({
+      number: String(17 + i).padStart(3, "0"),
+      name: "Quarto Individual (Ar)",
+      type: "INDIVIDUAL",
+      climatizacao: "CENTRAL_AR",
+      hasBathroom: true,
+      capacity: 1,
+      basePriceCents: 9000,
+      bedConfig: "1 cama de solteiro.",
+    });
+  }
+
+  const economicRooms = ["019", "020", "021", "022"];
+  economicRooms.forEach((number, index) => {
+    roomDefinitions.push({
+      number,
+      name: "Quarto Econômico",
+      type: "ECONOMICO",
+      climatizacao: "VENTILADOR",
+      hasBathroom: index < 2,
+      capacity: 1,
+      basePriceCents: 8000,
+      bedConfig: "1 cama de solteiro.",
+    });
   });
+
+  if (roomDefinitions.length !== 22) {
+    throw new Error(`Expected 22 rooms, received ${roomDefinitions.length}.`);
+  }
+
+  const targetRoomNumbers = roomDefinitions.map((room) => room.number);
+  const roomsByNumber = new Map<string, Awaited<ReturnType<typeof prisma.room.upsert>>>();
+  for (const room of roomDefinitions) {
+    const persisted = await prisma.room.upsert({
+      where: { number: room.number },
+      update: {
+        name: room.name,
+        type: room.type,
+        climatizacao: room.climatizacao,
+        hasBathroom: room.hasBathroom,
+        capacity: room.capacity,
+        description: roomDescription(room.bedConfig, room.hasBathroom),
+        basePriceCents: room.basePriceCents,
+        seasonalPriceCents: null,
+        status: "AVAILABLE",
+      },
+      create: {
+        number: room.number,
+        name: room.name,
+        type: room.type,
+        climatizacao: room.climatizacao,
+        hasBathroom: room.hasBathroom,
+        capacity: room.capacity,
+        description: roomDescription(room.bedConfig, room.hasBathroom),
+        basePriceCents: room.basePriceCents,
+        seasonalPriceCents: null,
+        status: "AVAILABLE",
+      },
+    });
+
+    roomsByNumber.set(room.number, persisted);
+  }
+
+  const room001 = roomsByNumber.get("001");
+  const room002 = roomsByNumber.get("002");
+  if (!room001 || !room002) {
+    throw new Error("Failed to create seed rooms 001 and 002.");
+  }
 
   const breakfast = await prisma.service.upsert({
     where: { name: "Cafe da Manha" },
@@ -182,23 +258,31 @@ async function main() {
   const booking1 = await prisma.booking.upsert({
     where: { bookingCode: "HSA-20260223-001" },
     update: {
+      guestId: guestJoao.id,
+      roomId: room001.id,
       status: "CONFIRMED",
       paymentStatus: "PENDING_WHATSAPP",
-      totalCents: 39500,
+      checkIn: new Date("2026-03-15"),
+      checkOut: new Date("2026-03-17"),
+      guestsCount: 2,
+      nightlyRateCents: 30000,
+      extraServicesCents: 3500,
+      totalCents: 63500,
+      notes: "Chegada prevista apos 20h.",
     },
     create: {
       bookingCode: "HSA-20260223-001",
       guestId: guestJoao.id,
-      roomId: room101.id,
+      roomId: room001.id,
       status: "CONFIRMED",
       paymentStatus: "PENDING_WHATSAPP",
       source: "WEB",
       checkIn: new Date("2026-03-15"),
       checkOut: new Date("2026-03-17"),
       guestsCount: 2,
-      nightlyRateCents: 18000,
+      nightlyRateCents: 30000,
       extraServicesCents: 3500,
-      totalCents: 39500,
+      totalCents: 63500,
       notes: "Chegada prevista apos 20h.",
     },
   });
@@ -206,23 +290,31 @@ async function main() {
   const booking2 = await prisma.booking.upsert({
     where: { bookingCode: "HSA-20260223-002" },
     update: {
+      guestId: guestMaria.id,
+      roomId: room002.id,
       status: "PENDING",
       paymentStatus: "PENDING_WHATSAPP",
-      totalCents: 56000,
+      checkIn: new Date("2026-04-01"),
+      checkOut: new Date("2026-04-03"),
+      guestsCount: 2,
+      nightlyRateCents: 18000,
+      extraServicesCents: 0,
+      totalCents: 36000,
+      notes: "Aguardando confirmacao com a administracao.",
     },
     create: {
       bookingCode: "HSA-20260223-002",
       guestId: guestMaria.id,
-      roomId: room205.id,
+      roomId: room002.id,
       status: "PENDING",
       paymentStatus: "PENDING_WHATSAPP",
       source: "WEB",
       checkIn: new Date("2026-04-01"),
       checkOut: new Date("2026-04-03"),
       guestsCount: 2,
-      nightlyRateCents: 28000,
+      nightlyRateCents: 18000,
       extraServicesCents: 0,
-      totalCents: 56000,
+      totalCents: 36000,
       notes: "Aguardando confirmacao com a administracao.",
     },
   });
@@ -248,11 +340,35 @@ async function main() {
     },
   });
 
-  // Room 308 fica sem reserva seed para aparecer como ocupado por bloqueio manual.
-  await prisma.room.update({
-    where: { id: room308.id },
-    data: { status: "OCCUPIED" },
+  // Remove quartos antigos que nao fazem parte da numeracao final (001-022),
+  // inclusive suas reservas historicas para nao bloquear por FK.
+  const staleRooms = await prisma.room.findMany({
+    where: { number: { notIn: targetRoomNumbers } },
+    select: { id: true },
   });
+
+  const staleRoomIds = staleRooms.map((room) => room.id);
+  if (staleRoomIds.length > 0) {
+    const staleBookings = await prisma.booking.findMany({
+      where: { roomId: { in: staleRoomIds } },
+      select: { id: true },
+    });
+
+    const staleBookingIds = staleBookings.map((booking) => booking.id);
+    if (staleBookingIds.length > 0) {
+      await prisma.bookingService.deleteMany({
+        where: { bookingId: { in: staleBookingIds } },
+      });
+      await prisma.booking.deleteMany({
+        where: { id: { in: staleBookingIds } },
+      });
+    }
+
+    await prisma.room.deleteMany({
+      where: { id: { in: staleRoomIds } },
+    });
+  }
+
 }
 
 main()

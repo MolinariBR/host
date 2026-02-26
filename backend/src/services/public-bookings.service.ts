@@ -20,7 +20,7 @@ export type CreatePublicBookingInput = {
   guestName: string;
   guestEmail: string;
   guestPhone: string;
-  guestDocument?: string;
+  guestDocument: string;
   roomId: string;
   checkIn: string;
   checkOut: string;
@@ -67,6 +67,11 @@ export async function createPublicBooking(
   paymentStatus: PaymentStatus;
   whatsappUrl: string;
 }> {
+  const guestDocument = input.guestDocument.replace(/\D/g, "");
+  if (guestDocument.length !== 11 && guestDocument.length !== 14) {
+    throw new Error("Guest document must be a valid CPF or CNPJ.");
+  }
+
   const checkIn = parseDateOnly(input.checkIn);
   const checkOut = parseDateOnly(input.checkOut);
   ensureCheckoutAfterCheckin(checkIn, checkOut);
@@ -115,7 +120,7 @@ export async function createPublicBooking(
       name: input.guestName,
       email: input.guestEmail,
       phone: input.guestPhone,
-      document: input.guestDocument,
+      document: guestDocument,
     });
 
     const bookingCode = await generateBookingCode(tx);

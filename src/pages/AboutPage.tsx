@@ -1,9 +1,11 @@
 import { Link } from 'react-router-dom'
 import { ExternalLink, Landmark, MapPin, UserRound, CalendarDays } from 'lucide-react'
 import Navbar from '../components/Navbar'
+import PageSeo from '../components/PageSeo'
 import { useHotelProfile } from '../hooks/useHotelProfile'
 import { appConfig } from '../config/app-config'
-import nossaHistoriaImage from '../assets/images/nossa-historia.png'
+import { buildCanonicalUrl } from '../lib/seo'
+import nossaHistoriaImage from '../assets/images/nossa-historia.webp'
 
 const newsLinks = [
   {
@@ -17,12 +19,59 @@ export default function AboutPage() {
   const hotelName = profile?.tradeName || appConfig.fallbackHotelName
   const hotelCity = profile?.city || appConfig.fallbackCity
   const hotelState = profile?.state || appConfig.fallbackState
+  const aboutJsonLd = [
+    {
+      id: 'seo-about-webpage',
+      data: {
+        '@context': 'https://schema.org',
+        '@type': 'AboutPage',
+        '@id': `${buildCanonicalUrl('/sobre')}#aboutpage`,
+        name: `Sobre o ${hotelName}`,
+        url: buildCanonicalUrl('/sobre'),
+        isPartOf: {
+          '@type': 'WebSite',
+          name: hotelName,
+          url: buildCanonicalUrl('/'),
+        },
+      },
+    },
+    {
+      id: 'seo-about-breadcrumb',
+      data: {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          {
+            '@type': 'ListItem',
+            position: 1,
+            name: 'Inicio',
+            item: buildCanonicalUrl('/'),
+          },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: 'Sobre',
+            item: buildCanonicalUrl('/sobre'),
+          },
+        ],
+      },
+    },
+  ]
 
   return (
     <div className="min-h-screen bg-slate-50">
+      <PageSeo
+        title={`Sobre a Hospedaria | ${hotelName}`}
+        description={`Conheca a historia, localizacao e perfil da hospedaria ${hotelName} em ${hotelCity}-${hotelState}.`}
+        pathname="/sobre"
+        imageUrl={nossaHistoriaImage}
+        imageAlt={`Historia da hospedaria ${hotelName}`}
+        siteName={hotelName}
+        jsonLd={aboutJsonLd}
+      />
       <Navbar />
 
-      <main className="pt-24 pb-20 px-4 sm:px-6 lg:px-8">
+      <main id="main-content" className="pt-24 pb-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
           <section className="grid lg:grid-cols-2 gap-10 items-center mb-16">
             <div>
@@ -37,7 +86,13 @@ export default function AboutPage() {
               </p>
             </div>
             <div className="relative h-[26rem] rounded-2xl overflow-hidden shadow-xl">
-              <img src={nossaHistoriaImage} alt={`História do ${hotelName}`} className="w-full h-full object-cover" />
+              <img
+                src={nossaHistoriaImage}
+                alt={`História do ${hotelName}`}
+                className="w-full h-full object-cover"
+                loading="lazy"
+                decoding="async"
+              />
             </div>
           </section>
 
