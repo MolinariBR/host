@@ -59,9 +59,20 @@ jobs:
           rm -rf src/ public/ index.html vite.config.ts postcss.config.js tailwind.config.js
           rm -rf backend/src/
           
+          # Garante que o .env do servidor seja levado na nuvem e as portas correspondam com arquivo .env.example
+          cat << 'ENVFILE' > backend/.env
+          DATABASE_URL="file:./database.sqlite"
+          PORT="80"
+          HOST="0.0.0.0"
+          JWT_SECRET="squarecloud-hsa-secret-token"
+          JWT_EXPIRES_IN="24h"
+          WHATSAPP_PHONE="+5563981217810"
+          ENVFILE
+          
           # Força a adicionar os arquivos gerados no build (mesmo estando no .gitignore)
           git add dist/ -f
           git add backend/dist/ -f
+          git add backend/.env -f
           
           # Adiciona as deleções
           git add -u
