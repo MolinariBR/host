@@ -1,0 +1,71 @@
+name: Build for Squarecloud
+
+on:
+  push:
+    branches:
+      - main # Roda quando você der push na main
+
+jobs:
+  build-and-push-deploy-branch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Permissão necessária para o bot do Github poder criar a branch de deploy
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # ==========================================
+      # 1. BUILD DO FRONTEND
+      # ==========================================
+      - name: Instalar Dependências (Frontend)
+        run: npm install
+
+      - name: Buildar Frontend
+        run: npm run build
+
+      # ==========================================
+      # 2. BUILD DO BACKEND
+      # ==========================================
+      - name: Instalar Dependências (Backend)
+        working-directory: ./backend
+        run: npm install
+
+      - name: Gerar Prisma
+        working-directory: ./backend
+        run: npx prisma generate
+
+      - name: Buildar Backend
+        working-directory: ./backend
+        run: npm run build
+
+      # ==========================================
+      # 3. ENVIAR PARA BRANCH "deploy"
+      # ==========================================
+      - name: Fazer commit e push do build para a branch "deploy"
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Cria uma nova branch isolada chamada "deploy"
+          git checkout -b deploy
+          
+          # Exclui pasta de código fonte pra não pesar na memória da Squarecloud
+          rm -rf src/ public/ index.html vite.config.ts postcss.config.js tailwind.config.js
+          rm -rf backend/src/
+          
+          # Força a adicionar os arquivos gerados no build (mesmo estando no .gitignore)
+          git add dist/ -f
+          git add backend/dist/ -f
+          
+          # Adiciona as deleções
+          git add -u
+          
+          # Comita e faz force-push para a branch "deploy" no seu próprio Github
+          git commit -m "build: prepara arquivos compilados para a squarecloud" || echo "Sem mudanças"
+          git push origin deploy --force
