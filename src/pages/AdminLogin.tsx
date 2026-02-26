@@ -20,7 +20,10 @@ export default function AdminLogin() {
     e.preventDefault()
     setSubmitting(true)
     try {
-      const response = await api.adminLogin({ email, password })
+      const response = await api.adminLogin({
+        email: email.trim().toLowerCase(),
+        password,
+      })
       setAdminToken(response.token)
       navigate(redirectTo, { replace: true })
     } catch (error) {
