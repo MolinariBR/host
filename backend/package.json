@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "tsc -p tsconfig.json && tsc prisma/seed.ts --outDir dist/prisma --esModuleInterop",
+    "build": "tsc -p tsconfig.json && tsc prisma/seed.ts --outDir dist/prisma --esModuleInterop --target ES2022 --moduleResolution node",
     "start": "node dist/src/server.js",
     "test:integration": "npm run prisma:seed && tsx --test src/tests/integration.test.ts",
     "prisma:generate": "prisma generate",
