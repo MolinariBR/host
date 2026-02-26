@@ -68,8 +68,9 @@ async function main() {
     where: { email: adminEmail },
     update: {
       name: "Administrador",
-      passwordHash: adminPasswordHash,
       isActive: true,
+      passwordHash: adminPasswordHash,
+      role: "OWNER",
     },
     create: {
       name: "Administrador",
